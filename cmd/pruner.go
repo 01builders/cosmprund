@@ -12,7 +12,6 @@ import (
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
@@ -95,7 +94,7 @@ func pruneAppState(home string) error {
 	// only mount keys from core sdk
 	// todo allow for other keys to be mounted
 	keys := types.NewKVStoreKeys(
-		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, crisistypes.ModuleName,
+		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, "crisis",
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramtypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
@@ -578,7 +577,13 @@ func pruneAppState(home string) error {
 
 	fmt.Println(len(v64))
 
-	appStore.PruneHeights = v64[:len(v64)-10]
+	// Keep at least the last 10 versions, or all versions if less than 10 exist
+	if len(v64) > 10 {
+		appStore.PruneHeights = v64[:len(v64)-10]
+	} else {
+		// If we have 10 or fewer versions, don't prune any
+		appStore.PruneHeights = []int64{}
+	}
 
 	appStore.PruneStores()
 
