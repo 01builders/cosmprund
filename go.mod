@@ -1,6 +1,8 @@
 module github.com/binaryholdings/cosmos-pruner
 
-go 1.17
+go 1.22
+
+toolchain go1.24.1
 
 require (
 	github.com/cosmos/cosmos-sdk v0.45.2-0.20220209090836-4161d2b6022a

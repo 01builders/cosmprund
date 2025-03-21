@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -158,6 +159,8 @@ func pruneTMData(home string) error {
 
 	pruneHeight := blockStore.Height() - int64(blocks)
 
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	errs, _ := errgroup.WithContext(context.Background())
 	errs.Go(func() error {
 		fmt.Println("pruning block store")
@@ -172,6 +175,7 @@ func pruneTMData(home string) error {
 			return err
 		}
 
+		wg.Done()
 		return nil
 	})
 
@@ -186,6 +190,11 @@ func pruneTMData(home string) error {
 	if err := stateDB.ForceCompact(nil, nil); err != nil {
 		return err
 	}
+
+	wg.Wait()
+
+	stateDB.Close()
+	blockStore.Close()
 
 	return nil
 }

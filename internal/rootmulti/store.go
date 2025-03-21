@@ -224,7 +224,7 @@ func (rs *Store) loadVersion(ver int64, upgrades *types.StoreUpgrades) error {
 
 		store, err := rs.loadCommitStoreFromParams(key, commitID, storeParams)
 		if err != nil {
-			return errors.Wrap(err, "failed to load store")
+			return fmt.Errorf("failed to load store: %w", err)
 		}
 
 		newStores[key] = store
@@ -232,7 +232,7 @@ func (rs *Store) loadVersion(ver int64, upgrades *types.StoreUpgrades) error {
 		// If it was deleted, remove all data
 		if upgrades.IsDeleted(key.Name()) {
 			if err := deleteKVStore(store.(types.KVStore)); err != nil {
-				return errors.Wrapf(err, "failed to delete store %s", key.Name())
+				return fmt.Errorf("failed to delete store %s: %w", key.Name(), err)
 			}
 			rs.removalMap[key] = true
 		} else if oldName := upgrades.RenamedFrom(key.Name()); oldName != "" {
@@ -245,12 +245,12 @@ func (rs *Store) loadVersion(ver int64, upgrades *types.StoreUpgrades) error {
 			// load from the old name
 			oldStore, err := rs.loadCommitStoreFromParams(oldKey, rs.getCommitID(infos, oldName), oldParams)
 			if err != nil {
-				return errors.Wrapf(err, "failed to load old store %s", oldName)
+				return fmt.Errorf("failed to load old store %s: %w", oldName, err)
 			}
 
 			// move all data
 			if err := moveKVStoreData(oldStore.(types.KVStore), store.(types.KVStore)); err != nil {
-				return errors.Wrapf(err, "failed to move store %s -> %s", oldName, key.Name())
+				return fmt.Errorf("failed to move store %s -> %s: %w", oldName, key.Name(), err)
 			}
 
 			// add the old key so its deletion is committed
@@ -431,8 +431,6 @@ func (rs *Store) Commit() types.CommitID {
 		Hash:    rs.lastCommitInfo.Hash(),
 	}
 }
-
-type empty struct{}
 
 // PruneStores will batch delete a list of heights from each mounted sub-store.
 // Afterwards, pruneHeights is reset.
