@@ -118,7 +118,13 @@ func pruneAppState(home string) error {
 
 	fmt.Println(len(v64))
 
-	appStore.PruneHeights = v64[:len(v64)-10]
+	// Keep at least the last 10 versions, or all versions if less than 10 exist
+	if len(v64) > 10 {
+		appStore.PruneHeights = v64[:len(v64)-10]
+	} else {
+		// If we have 10 or fewer versions, don't prune any
+		appStore.PruneHeights = []int64{}
+	}
 
 	appStore.PruneStores()
 
