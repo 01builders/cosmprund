@@ -1,0 +1,21 @@
+version: 2
+
+builds:
+  - main: .
+    binary: cosmprund
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/01builders/cosmprund/v2/cmd.Version={{ .Version }}
+      - -X github.com/01builders/cosmprund/v2/cmd.Commit={{ .Commit }}
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+
+archives:
+  - formats: [tar.gz]
+
+checksum:
+  name_template: checksums.txt

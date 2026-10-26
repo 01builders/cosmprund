@@ -1,12 +1,10 @@
-# 1st stage, build app
-FROM golang:1.19-alpine as builder
-
-COPY . /app
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
-
-RUN go build -o cosmprund
-
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -mod=readonly -trimpath -o cosmprund .
 
 FROM alpine
 
